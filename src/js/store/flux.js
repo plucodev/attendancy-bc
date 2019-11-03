@@ -11,6 +11,7 @@ const getState = ({ getStore, setStore, getActions }) => {
 		actions: {
 			getStudentsAndActivities: ({ cohortSlug, access_token, props }) => {
 				let url = `https://api.breatheco.de/students/cohort/${cohortSlug}?access_token=${access_token}`;
+				console.log("url", url);
 
 				// Fetch students from cohort
 				fetch(url, { cache: "no-cache" })
@@ -22,13 +23,18 @@ const getState = ({ getStore, setStore, getActions }) => {
 						return response.json();
 					})
 					.then(({ data: students }) => {
-						getActions("formatNames")(students);
+						// getActions("formatNames")(students);
 						// Fetch all activities from cohort
 						url = `https://assets.breatheco.de/apis/activity/cohort/${cohortSlug}?access_token=${
 							process.env.ASSETS_TOKEN
 						}`;
+						console.log("act_url:", url);
 						fetch(url, { cache: "no-cache" })
-							.then(response => response.json())
+							.then(response => {
+								response.json();
+								console.log("response", response);
+							})
+
 							.then(activities => {
 								// Merge students with their activities
 								let stuAct = {}; // {student_id: {day0: unattendance, day1: attendance, ...}}
@@ -49,6 +55,7 @@ const getState = ({ getStore, setStore, getActions }) => {
 									stuAct[e.user_id].avg += e.slug.includes("unattendance") ? 0 : 1;
 									dailyAvg[day] += e.slug.includes("unattendance") ? 0 : 1;
 								});
+								console.log("activities", activities);
 								// divide by the number of students to get the avg
 								Object.keys(dailyAvg).map(
 									key => (dailyAvg[key] = (dailyAvg[key] / students.length) * 100)
